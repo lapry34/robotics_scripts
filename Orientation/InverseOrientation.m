@@ -3,9 +3,11 @@ clear variables;
 clc;
 
 % Define the rotation matrix R
-R = [-1, 0, 0;
-     0, -1/sqrt(2), -1/sqrt(2);
-     0, -1/sqrt(2), 1/sqrt(2)];
+R = [
+0.25000, -0.43301, 0.86603;
+-0.43301, 0.75000, 0.50000;
+-0.86603, -0.50000, 0.00000;
+];
 
 % Call the function to get the axis and angles
 [r_1, r_2, theta_1, theta_2] = inverseRotationMatrix(R);
@@ -15,11 +17,15 @@ fprintf("First solution:\n");
 fprintf("r_1: \n");
 disp(r_1);
 fprintf("theta_1: %.2f radians\n", theta_1);
+fprintf("theta_1: %.2f*PI \n", theta_1/pi);
+fprintf("theta_1: %.2f degrees\n", theta_1*180/pi)
 
 fprintf("\nSecond solution (opposite):\n");
 fprintf("r_2: \n");
 disp(r_2);
 fprintf("theta_2: %.2f radians\n", theta_2);
+fprintf("theta_2: %.2f*PI \n", theta_2/pi);
+fprintf("theta_2: %.2f degrees\n", theta_2*180/pi)
 
 
 function [r_1, r_2, theta_1, theta_2] = inverseRotationMatrix(R)

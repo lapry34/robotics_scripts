@@ -38,6 +38,9 @@ if __name__ == "__main__":
                     [0, 0, 1]])
             R = np.dot(R, R_z)
 
-#print R matrix in console with decimal values
+#print R matrix in console with decimal values in matlab style
+    print("R = [")
     for row in R:
-        print([round(x, 5) for x in row])
+        for i, col in enumerate(row):
+            print("{:.5f}".format(col), end=", " if i < 2 else ";\n")
+    print("];")
