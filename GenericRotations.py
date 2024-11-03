@@ -1,46 +1,57 @@
-import numpy as np
+from sympy import symbols, cos, sin, Matrix, pi
+import sys
+PI = pi
 
-
-PI = np.pi
+# Define symbolic angles
+alpha, beta, gamma = symbols('alpha beta gamma')
 
 if __name__ == "__main__":
-    
+    # Set fixed order and symbolic angles
     fixed = True
     order = "ZYX"
 
-    alpha   =   PI/3    #first angle in order
-    beta    =   PI/3    #second angle in order
-    gamma   =   -PI/2   #third angle in order
-    
-    angles = [alpha, beta, gamma]
-    R = np.eye(3)
+    # if you want to define angles directly, uncomment the following lines
+    #alpha   =   PI/3    #first angle in order
+    #beta    =   PI/3    #second angle in order
+    #gamma   =   -PI/2   #third angle in order
+
+    angles = [alpha, beta, gamma]  # Use symbolic angles
+    R = Matrix.eye(3)  # Initialize the rotation matrix as a 3x3 identity matrix
 
     if fixed:
         order = order[::-1]
         angles = angles[::-1]
-    
-    for c, angle in zip(order, angles):
-        if c == "X":            
-            R_x = np.array([[1, 0, 0],
-                    [0, np.cos(angle), -np.sin(angle)],
-                    [0, np.sin(angle), np.cos(angle)]])
-            R = np.dot(R, R_x)
 
-        elif c == "Y":
-            R_y = np.array([[np.cos(angle), 0, np.sin(angle)],
-                    [0, 1, 0],
-                    [-np.sin(angle), 0, np.cos(angle)]])
-            R = np.dot(R, R_y)
+    # Apply rotation matrices based on order and symbolic angles
+    for axis, angle in zip(order, angles):
+        if axis == "X":
+            R_x = Matrix([
+                [1, 0, 0],
+                [0, cos(angle), -sin(angle)],
+                [0, sin(angle), cos(angle)]
+            ])
+            R *= R_x
 
-        elif c == "Z":
-            R_z = np.array([[np.cos(angle), -np.sin(angle), 0],
-                    [np.sin(angle), np.cos(angle), 0],
-                    [0, 0, 1]])
-            R = np.dot(R, R_z)
+        elif axis == "Y":
+            R_y = Matrix([
+                [cos(angle), 0, sin(angle)],
+                [0, 1, 0],
+                [-sin(angle), 0, cos(angle)]
+            ])
+            R *= R_y
 
-#print R matrix in console with decimal values in matlab style
+        elif axis == "Z":
+            R_z = Matrix([
+                [cos(angle), -sin(angle), 0],
+                [sin(angle), cos(angle), 0],
+                [0, 0, 1]
+            ])
+            R *= R_z
+
+    # Display the rotation matrix R in symbolic form
     print("R = [")
-    for row in R:
+    for row in R.tolist():
         for i, col in enumerate(row):
-            print("{:.5f}".format(col), end=", " if i < 2 else ";\n")
+            print(f"{col}", end=", " if i < 2 else ";\n")
     print("];")
+    sys.exit(0)
