@@ -1,7 +1,7 @@
 from sympy import symbols, cos, sin, pi, atan2, sqrt, Matrix, simplify
 
 # Define symbols
-d1, theta2 = symbols('d1 theta2')
+d1, theta2 = symbols('d_1 θ_2')
 
 # Define DH parameters for two joints
 # Note: Each row is [d, theta, a, alpha] in the specified order

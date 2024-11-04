@@ -3,7 +3,7 @@ import sys
 PI = pi
 
 # Define symbolic angles
-alpha, beta, gamma = symbols('alpha beta gamma')
+alpha, beta, gamma = symbols('α β γ')
 
 if __name__ == "__main__":
     # Set fixed order and symbolic angles
