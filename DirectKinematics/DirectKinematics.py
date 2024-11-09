@@ -4,16 +4,17 @@ from sympy import symbols, cos, sin, pi, atan2, sqrt, Matrix, simplify
 d1, theta2 = symbols('d_1 θ_2')
 
 # Define DH parameters for two joints
-# Note: Each row is [d, theta, a, alpha] in the specified order
+# Note: Each row is [alpha, a, d, theta] in the specified order
+# alpha, a always constant!!!!
 DH = [
-    [d1, 0, 0.5, pi/2],   # First joint (prismatic)
-    [0, theta2, 0.3, 0]   # Second joint (revolute)
+    [pi/2, 0.5, d1, 0],   # First joint (prismatic)
+    [0, 0.3, 0, theta2]   # Second joint (revolute)
 ]
 
 # Direct kinematics function
 def direct_kinematics(DH_params):
     T = Matrix.eye(4)  # Initialize transformation matrix as identity
-    for d, theta, a, alpha in DH_params:
+    for a, alpha, d, theta in DH_params:
         # Create transformation matrix for the current joint
         Ti = Matrix([
             [cos(theta), -sin(theta) * cos(alpha), sin(theta) * sin(alpha), a * cos(theta)],

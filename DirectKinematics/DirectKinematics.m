@@ -5,11 +5,11 @@ syms d1 theta2
 
 % alpha and a always constant!!!!
 % Define the custom order of parameters
-paramOrder = {'d', 'theta', 'a', 'alpha'};
+paramOrder = {'alpha', 'a', 'd', 'theta'};
 
 % Define DH parameters for two joints with custom order
-DH = [d1, 0, 0.5, pi/2;    % First joint (prismatic)
-      0, theta2, 0.3, 0];   % Second joint (revolute)
+DH = [pi/2, 0.5, d1, 0;    % First joint (prismatic)
+    0, 0.3, 0, theta2];   % Second joint (revolute)
 
 % Compute the direct kinematics
 T = directKinematics(DH, paramOrder);
