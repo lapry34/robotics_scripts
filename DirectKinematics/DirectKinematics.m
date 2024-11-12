@@ -7,9 +7,13 @@ syms d1 theta2
 % Define the custom order of parameters
 paramOrder = {'alpha', 'a', 'd', 'theta'};
 
-% Define DH parameters for two joints with custom order
-DH = [pi/2, 0.5, d1, 0;    % First joint (prismatic)
-    0, 0.3, 0, theta2];   % Second joint (revolute)
+% Define DH parameters for two joints
+% Note: Each row is [alpha, a, d, theta] in the specified order
+% parameters are used for trasformations in inverse order as in the book (theta, d, a, alpha)
+DH = [
+    pi/2, 0, d1, 0.5;   % First joint (prismatic)
+    0, 0.3, 0, theta2;  % Second joint (revolute)
+]
 
 % Compute the direct kinematics
 T = directKinematics(DH, paramOrder);
@@ -49,13 +53,13 @@ disp(b3)
 
 function T = directKinematics(DH, paramOrder)
     % DH: nx4 matrix where each row is [p1, p2, p3, p4] in the specified order
-    % paramOrder: 1x4 cell array specifying the order of DH parameters, e.g., {'d', 'theta', 'a', 'alpha'}
+    % paramOrder: 1x4 cell array specifying the order of DH parameters e.g {'alpha', 'a', 'd', 'theta'}
     
     % Number of joints
     n = size(DH, 1);
-    
+   
     % Map parameter names to indices
-    paramMap = containers.Map({'d', 'theta', 'a', 'alpha'}, 1:4);
+    paramMap = containers.Map({'alpha', 'a', 'd', 'theta'}, 1:4);
     paramIdx = cellfun(@(x) paramMap(x), paramOrder);
     
     % Initialize transformation matrix as identity
@@ -63,10 +67,10 @@ function T = directKinematics(DH, paramOrder)
     
     for i = 1:n
         % Extract DH parameters in the specified order
-        d = DH(i, paramIdx(1));
-        theta = DH(i, paramIdx(2));
-        a = DH(i, paramIdx(3));
-        alpha = DH(i, paramIdx(4));
+        alpha = DH(i, paramIdx(1));
+        a = DH(i, paramIdx(2));
+        d = DH(i, paramIdx(3));
+        theta = DH(i, paramIdx(4));
 
         % Compute the transformation matrix for the current joint
         Ti = [cos(theta), -sin(theta)*cos(alpha), sin(theta)*sin(alpha), a*cos(theta);
