@@ -4,10 +4,11 @@ clc;
 
 % Define the rotation matrix R
 R = [
-0.25000, -0.43301, 0.86603;
--0.43301, 0.75000, 0.50000;
--0.86603, -0.50000, 0.00000;
+-2, 2, -1;
+2, 1, -2;
+-1, -2, -2;
 ];
+R = R / 3;
 
 % Call the function to get the axis and angles
 [r_1, r_2, theta_1, theta_2] = inverseRotationMatrix(R);
@@ -62,27 +63,36 @@ function [r_1, r_2, theta_1, theta_2] = inverseRotationMatrix(R)
 
     % Compute angles theta_1 and (opposite) theta_2
     theta_1 = atan2(y, x);
-    theta_2 = atan2(-y, x);
 
     % Compute sine values
     s_1 = sin(theta_1);
-    s_2 = sin(theta_2);
 
-    % Check condition theta -> 0 (undefined)
+    % Check condition theta_1 -> 0 (undefined)
     if abs(theta_1) < tolerance_theta
         error("Undefined! Theta approaches 0.");
 
-    % Check conditions if s_1/s_2 -> 0 and theta -> pi
-    elseif (abs(s_1) < tolerance_s && abs(abs(theta_1) - pi) < tolerance_theta) || ...
-           (abs(s_2) < tolerance_s && abs(abs(theta_2) - pi) < tolerance_theta)
-       
-        r_1 = [sqrt(R_11 + 1); sqrt(R_22 + 1); sqrt(R_33 + 1)] / 2;
-        r_2 = -r_1;  % The second solution is simply the negative of r_1
-
+    % Check conditions if s_1 -> 0 and theta_1 -> pi
+    elseif (abs(s_1) < tolerance_s && abs(abs(theta_1) - pi) < tolerance_theta)
+        r_1 = [sqrt(R_11 + 1); sqrt(R_22 + 1); sqrt(R_33 + 1)] / sqrt(2);
     else
         % Create vector r from cross product components
         r_1 = [R_32 - R_23; R_13 - R_31; R_21 - R_12] / (2 * sin(theta_1));
-        r_2 = -r_1;  % The second solution is the opposite direction
-
     end
+    
+    % Check if rxry = R12/2, rxrz = R13/2, ryrz = R23/2 holds, to choose
+    % the sign of each component of r_1
+    if sign(r_1(1) * r_1(2)) ~= sign(R_12 / 2)
+        r_1(1) = -r_1(1);
+    end
+    if sign(r_1(1) * r_1(3)) ~= sign(R_13 / 2)
+        r_1(3) = -r_1(3);
+    end
+    if sign(r_1(2) * r_1(3)) ~= sign(R_23 / 2)
+        r_1(2) = -r_1(2);
+    end
+    
+    % Second solution (opposite axis)
+    r_2 = -r_1;
+    theta_2 = -theta_1;
+
 end
