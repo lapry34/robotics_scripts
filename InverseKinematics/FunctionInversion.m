@@ -3,13 +3,16 @@ clc;
 
 
 % Define the vector-valued function and its Jacobian
-f = @(x) [x(1)^2 + x(2); x(1) + x(2)^2 - 1];  % Example vector-valued function
+l1 = 5;
+l2 = 2;
+f = @(q) [l1*cos(q(1)) + l2*cos(q(1) + q(2)); l1*sin(q(1)) + l2*sin(q(1) + q(2))]; %2R robot
+% f = @(x) [x(1)^2 + x(2); x(1) + x(2)^2 - 1];  % Example vector-valued function
 
 
 delta = 1e-5;  % Small step size
 
 % Target value for which we want to find the inverse
-y = [2; 3];  % Example target vector
+y = [3; 4];  % Example target vector
 
 % Initial guess for x
 x0 = [1; 1];
