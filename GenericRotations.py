@@ -26,8 +26,8 @@ def print_matlab(mat):
     print("[")
     for row in mat.tolist():
 
-        for elem in row:
-            if elem == row[-1]:
+        for i, elem in enumerate(row):
+            if i == len(row) - 1:
                 print(elem, end=";")
             else:
                 print(elem, end=",")
@@ -79,7 +79,7 @@ alpha, beta, gamma = symbols('alpha beta gamma')
 if __name__ == "__main__":
     # Define rotation matrix R (replace with actual matrix values)
     #R = generate_rotation_matrix(order="ZYX", angles=[alpha, beta, gamma], fixed=False)
-    R = generate_rotation_matrix(order="ZYX", angles=[PI/4, PI/3, PI/6], fixed=False)
+    R = generate_rotation_matrix(order="ZYX", angles=[-PI/2, -PI/4, PI/4], fixed=True)
     print("\nRotation matrix:")
     print_matlab(R)
 

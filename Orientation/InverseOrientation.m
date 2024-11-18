@@ -4,11 +4,10 @@ clc;
 
 % Define the rotation matrix R
 R = [
--2, 2, -1;
-2, 1, -2;
--1, -2, -2;
+0,sqrt(2)/2,-sqrt(2)/2;
+-sqrt(2)/2,-1/2,-1/2;
+-sqrt(2)/2,1/2,1/2;
 ];
-R = R / 3;
 
 % Call the function to get the axis and angles
 [r_1, r_2, theta_1, theta_2] = inverseRotationMatrix(R);
@@ -28,6 +27,11 @@ fprintf("theta_2: %.2f radians\n", theta_2);
 fprintf("theta_2: %.2f*PI \n", theta_2/pi);
 fprintf("theta_2: %.2f degrees\n", theta_2*180/pi)
 
+[V, Eig] = eig(R);
+fprintf("\n\nEigenvalues of R:\n");
+disp(diag(Eig));
+fprintf("Eigenvectors of R:\n");
+disp(V);
 
 function [r_1, r_2, theta_1, theta_2] = inverseRotationMatrix(R)
     % This function computes the axis r and angles theta from a given 

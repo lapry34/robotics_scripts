@@ -16,8 +16,8 @@ def print_matlab(mat):
     print("[")
     for row in mat.tolist():
 
-        for elem in row:
-            if elem == row[-1]:
+        for i, elem in enumerate(row):
+            if i == len(row) - 1:
                 print(elem, end=";")
             else:
                 print(elem, end=",")
