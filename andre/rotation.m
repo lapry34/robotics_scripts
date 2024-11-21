@@ -1,10 +1,10 @@
-syms phi theta gamma
+%syms alpha beta
+%alpha = pi/4;
+%beta=-pi/3;
+%Rz = RotZ(alpha);
+%Ry = RotY(beta);
 
-R1 = RotX(gamma)
-R2 = RotY(theta)
-R3 = RotZ(phi)
 
-A = R3*R2*R1
 
 function R = RotX(angle)
     % Rotazione attorno all'asse X

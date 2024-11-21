@@ -1,12 +1,11 @@
 clear variables;
-clc
+clc 
 
-clear variables;
-clc;
 
+syms delta
 % Define axis r and angle theta
-r = [0; 0; 1];  % Rotation about the Z-axis
-theta = pi/2;   % 90 degrees rotation
+r = [1/sqrt(2); -1/sqrt(2); 0];  % Rotation about the Z-axis
+theta = pi/3;   % 90 degrees rotation
 
 % Call the function to compute the rotation matrix R
 R = axisAngleToRotationMatrix(r, theta);
@@ -14,6 +13,8 @@ R = axisAngleToRotationMatrix(r, theta);
 % Display the result
 fprintf("R: \n")
 disp(R)
+
+
 
 
 function R = axisAngleToRotationMatrix(r, theta)

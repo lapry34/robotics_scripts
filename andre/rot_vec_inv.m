@@ -4,9 +4,9 @@ clc;
 
 % Define the rotation matrix R
 R = [
-0,sqrt(2)/2,-sqrt(2)/2;
--sqrt(2)/2,-1/2,-1/2;
--sqrt(2)/2,1/2,1/2;
+    0.7500,    0.6124,   -0.2500;
+   -0.2500,    0.6124,    0.7500;
+    0.6124,   -0.5000,    0.6124;
 ];
 
 % Call the function to get the axis and angles
