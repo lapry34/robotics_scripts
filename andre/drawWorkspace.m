@@ -4,8 +4,8 @@ clc; clear; close all;
 L = 1;
 
 % Campionamento degli angoli
-q1 = linspace(-pi/2, pi/2, 50); % Angolo del primo giunto
-q2 = linspace(0, pi/2, 50);    % Angolo del secondo giunto
+q1 = linspace(0, pi/2); % Angolo del primo giunto
+q2 = linspace(-pi/2, pi/2);    % Angolo del secondo giunto
 
 % Precalcolo dello spazio di lavoro
 x_WS = [];
