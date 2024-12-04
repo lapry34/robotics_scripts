@@ -1,22 +1,33 @@
 clc; clear; close all;
 
-% Lunghezza dei link
+% Lunghezza fissa tra il joint revolute e l'end-effector
 L = 1;
 
-% Campionamento degli angoli
-q1 = linspace(0, pi/2); % Angolo del primo giunto
-q2 = linspace(-pi/2, pi/2);    % Angolo del secondo giunto
+% Limiti dei giunti prismatici
+q1_min = -2.5; % Limite minimo del primo giunto prismatico
+q1_max = 2.5;  % Limite massimo del primo giunto prismatico
+q2_min = -2.5; % Limite minimo del secondo giunto prismatico
+q2_max = 2.5;  % Limite massimo del secondo giunto prismatico
+
+% Campionamento dei giunti
+q1 = linspace(q1_min, q1_max); % Spostamento del primo giunto prismatico
+q2 = linspace(q2_min, q2_max); % Spostamento del secondo giunto prismatico
+q3 = linspace(0, 2*pi);        % Angolo del giunto rotazionale
 
 % Precalcolo dello spazio di lavoro
 x_WS = [];
 y_WS = [];
 for i = 1:length(q1)
     for j = 1:length(q2)
-        % Calcolo cinematica diretta
-        x = L * cos(q1(i)) + L * cos(q1(i) + q2(j));
-        y = L * sin(q1(i)) + L * sin(q1(i) + q2(j));
-        x_WS = [x_WS, x];
-        y_WS = [y_WS, y];
+        for k = 1:length(q3)
+            % Calcolo cinematica diretta
+            x = q1(i) + q2(j) * cos(q3(k)); % Coordinata x
+            y = q2(j) * sin(q3(k));         % Coordinata y
+            
+            % Aggiungi il punto nello spazio di lavoro
+            x_WS = [x_WS, x];
+            y_WS = [y_WS, y];
+        end
     end
 end
 
@@ -26,20 +37,15 @@ hold on;
 axis equal;
 xlabel('x');
 ylabel('y');
-title('Spazio di lavoro primario (WS1) con visualizzazione dei link');
+title('Spazio di lavoro del manipolatore RPP con limiti ai giunti');
 grid on;
 
 % Disegna lo spazio di lavoro
-plot(x_WS, y_WS, 'b.', 'MarkerSize', 5); % Spazio di lavoro
+plot(x_WS, y_WS, 'b.', 'MarkerSize', 5);
 
 % Limiti dello spazio
-xlim([-2*L, 2*L]);
-ylim([-2*L, 2*L]);
-
-% Disegna i limiti dei link
-theta = linspace(0, 2*pi, 100);
-plot(2*L*cos(theta), 2*L*sin(theta), 'r--', 'LineWidth', 1); % Cerchio massimo
-plot(L*cos(theta), L*sin(theta), 'b--', 'LineWidth', 1); % Cerchio del secondo link
+xlim([q1_min + q2_min, q1_max + q2_max]);
+ylim([q2_min, q2_max]);
 
 % Inizializza grafici per i link
 link1 = plot([0, 0], [0, 0], 'k-', 'LineWidth', 2); % Primo link
@@ -51,21 +57,23 @@ end_effector = plot(0, 0, 'ro', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
 % Genera animazione
 for i = 1:length(q1)
     for j = 1:length(q2)
-        % Calcolo cinematica diretta
-        x1 = L * cos(q1(i)); % Fine del primo link
-        y1 = L * sin(q1(i));
-        
-        x2 = x1 + L * cos(q1(i) + q2(j)); % Fine del secondo link
-        y2 = y1 + L * sin(q1(i) + q2(j));
-        
-        % Aggiorna i link
-        set(link1, 'XData', [0, x1], 'YData', [0, y1]); % Primo link
-        set(link2, 'XData', [x1, x2], 'YData', [y1, y2]); % Secondo link
-        
-        % Aggiorna il punto finale
-        set(end_effector, 'XData', x2, 'YData', y2);
-        
-        % Pause per animazione
-        pause(0.01);
+        for k = 1:length(q3)
+            % Calcolo cinematica diretta
+            x1 = q1(i); % Fine del primo link
+            y1 = 0;
+            
+            x2 = x1 + q2(j) * cos(q3(k)); % Fine del secondo link
+            y2 = q2(j) * sin(q3(k));
+            
+            % Aggiorna i link
+            set(link1, 'XData', [0, x1], 'YData', [0, y1]); % Primo link
+            set(link2, 'XData', [x1, x2], 'YData', [y1, y2]); % Secondo link
+            
+            % Aggiorna il punto finale
+            set(end_effector, 'XData', x2, 'YData', y2);
+            
+            % Pause per animazione
+            pause(0.01);
+        end
     end
 end

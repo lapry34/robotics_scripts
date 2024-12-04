@@ -1,10 +1,26 @@
-%syms alpha beta
+syms alpha beta gamma
 %alpha = pi/4;
 %beta=-pi/3;
 %Rz = RotZ(alpha);
 %Ry = RotY(beta);
 
+Rz = RotZ(pi/2);
+Rx = RotX(pi/4);
+Ry = RotY(-pi/4);
 
+Ri = Rz * Rx * Ry;
+
+Rf = [
+    0.8660,   -0.3536,   -0.3536;
+    0.3536,    0.9330,   -0.0670;
+    0.3536,   -0.0670,    0.9330;
+];
+
+Rif = transpose(Ri) * Rf;
+
+[sol1, sol2] = rotm2eul(Rif, "YXY");
+sol1
+sol2
 
 function R = RotX(angle)
     % Rotazione attorno all'asse X

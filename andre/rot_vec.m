@@ -4,8 +4,8 @@ clc
 
 syms delta
 % Define axis r and angle theta
-r = [1/sqrt(2); -1/sqrt(2); 0];  % Rotation about the Z-axis
-theta = pi/3;   % 90 degrees rotation
+r = [0; -sqrt(2)/2; sqrt(2)/2];  % Rotation about the Z-axis
+theta = pi/6;   % 90 degrees rotation
 
 % Call the function to compute the rotation matrix R
 R = axisAngleToRotationMatrix(r, theta);
