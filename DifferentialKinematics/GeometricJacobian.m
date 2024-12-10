@@ -1,55 +1,42 @@
-% Import symbolic library and define variables
 clear variables;
 clc
 
 syms l1 l2 d2 d3 q1 q2 real
 
-% give him the joints to computer analytical jacobian
+% Joints and DH parameters
 joints = [q1, q2, d3];
-
-% alpha and a always constant!!!!
-% Define the custom order of parameters
 paramOrder = {'alpha', 'a', 'd', 'theta'};
-
-% Define DH parameters for two joints
-% Note: Each row is [alpha, a, d, theta] in the specified order
-% parameters are used for transformations in inverse order as in the book (theta, d, a, alpha)
-DH = [
-    0, l1, 0, q1;   % First joint (prismatic)
-    0, l2, 0, q2;  % Second joint (revolute)
-];
-
 DH = [
     0, -pi/2, 0, q1;
     0, pi/2, d2, q2;
     0, 0, d3, 0;
 ];
 
-% Compute the direct kinematics
-T = directKinematics(DH, paramOrder);
 
-% Display the transformation matrix
-disp('Transformation matrix T from base to end-effector:')
-disp(T)
+% Compute transformations
+[T_end, T_all] = directKinematics(DH, paramOrder);
 
+% Display the final transformation
+disp('Final transformation matrix T (base to end-effector):')
+disp(T_end)
 
-% Extract the end-effector position from T
-position = T(1:3, 4);
-disp('End-effector position:')
+% Position of the end-effector
+position = T_end(1:3, 4);
+disp('Position of the end-effector:')
 disp(position)
 
-% Compute the analytical Jacobian
-J = jacobian(position, joints);
-disp('Analytical Jacobian matrix:')
-disp(J)
-
 % Compute the geometric Jacobian
-J = geometricJacobian(DH, paramOrder, joints);
+J_geom = geometricJacobian(T_all, joints, 'RRP');
 disp('Geometric Jacobian matrix:')
-disp(J)
+disp(J_geom)
+
+% Compute the analytical Jacobian
+J_analytical = jacobian(position, joints);
+disp('Analytical Jacobian matrix:')
+disp(J_analytical)
 
 % Functions
-function T = directKinematics(DH, paramOrder)
+function [T, T_matrices] = directKinematics(DH, paramOrder)
     % DH: nx4 matrix where each row is [p1, p2, p3, p4] in the specified order
     % paramOrder: 1x4 cell array specifying the order of DH parameters e.g {'alpha', 'a', 'd', 'theta'}
     
@@ -62,6 +49,7 @@ function T = directKinematics(DH, paramOrder)
     
     % Initialize transformation matrix as identity
     T = eye(4);
+    T_matrices = sym(zeros(4, 4, n));  % 3D array to store all intermediate transformations
     
     for i = 1:n
         % Extract DH parameters in the specified order
@@ -79,74 +67,51 @@ function T = directKinematics(DH, paramOrder)
         % Update the total transformation matrix
         T = T * Ti;
         T = simplify(T);
+
+        % Store the intermediate transformation matrix
+        T_matrices(:, :, i) = T;
     end
 end
 
-function J = geometricJacobian(DH, paramOrder, joints)
-    % Computes the geometric Jacobian matrix from DH parameters
-    % DH: nx4 DH parameter table
-    % paramOrder: Order of parameters in the DH table
+function J = geometricJacobian(T_all, joints, type_joints)
+    % Computes the geometric Jacobian matrix using intermediate transformations
+    % T_all: 3D array of intermediate transformation matrices
+    % joints: symbolic vector of joint variables
     
-    % Number of joints
-    n = size(DH, 1);
-    
-    % Initialize transformation matrix and Jacobian matrix
-    T = eye(4);
+    % Number of transformations
+    n = size(T_all, 3);
+    % Initialize Jacobian components
     Jv = sym(zeros(3, n));  % Linear velocity Jacobian
     Jw = sym(zeros(3, n));  % Angular velocity Jacobian
     
-    % Map parameter names to indices
-    paramMap = containers.Map({'alpha', 'a', 'd', 'theta'}, 1:4);
-    paramIdx = cellfun(@(x) paramMap(x), paramOrder);
-    
-    % Base origin and orientation
-    origin = [0; 0; 0];
+    % Extract base origin and z-axis
     z_prev = [0; 0; 1];
     
     for i = 1:n
-        % Extract DH parameters in the specified order
-        alpha = DH(i, paramIdx(1));
-        a = DH(i, paramIdx(2));
-        d = DH(i, paramIdx(3));
-        theta = DH(i, paramIdx(4));
-        
-        % Compute transformation matrix for current joint
-        Ti = [cos(theta), -sin(theta)*cos(alpha), sin(theta)*sin(alpha), a*cos(theta);
-              sin(theta), cos(theta)*cos(alpha), -cos(theta)*sin(alpha), a*sin(theta);
-              0, sin(alpha), cos(alpha), d;
-              0, 0, 0, 1];
-        
-        % Update total transformation matrix
-        T = T * Ti;
-        
-        % Extract current origin and z-axis
-        o = T(1:3, 4);
+        % Extract the origin and z-axis of the current transformation
+        j = n-i+1;
+        T = T_all(:, :, j);
         z = T(1:3, 3);
 
-        % Compute Jacobian columns
-        if ismember(d, joints)  % Prismatic joint
-            Jv(:, i) = z_prev;
-            Jw(:, i) = [0; 0; 0];
-        else  % Revolute joint
-            Jv(:, i) = cross(z_prev, o - origin);
-            Jw(:, i) = z_prev;
+        T_end = T_all(:, :, n);
+        end_effector = T_end(1:3, 4);
+
+        % Check if the current joint is prismatic or revolute
+        if type_joints(j) == 'R'
+            % Revolute joint
+            Jv(:, j) = diff(end_effector, joints(j)); %ci sta quella non differenziale ma non riesco a farla funzionare
+            Jw(:, j) = z_prev;
+        else
+            % Prismatic joint
+            Jv(:, j) = z_prev;
+            Jw(:, j) = [0; 0; 0];
         end
         
-        % Update origin and z-axis
-        origin = o;
+        % Update the previous origin and z-axis
         z_prev = z;
     end
     
-    % Combine linear and angular parts
+    % Combine linear and angular parts into the full Jacobian
     J = [Jv; Jw];
     J = simplify(J);
-
-    % we have to add the last column to the precedent one and so on iteratively
-    % TODO: only when the joints are revolute?????????? update
-    for i = n-1:-1:1
-        J(1:3, i) = J(1:3, i) + J(1:3, i+1);
-    end
-
-    J = simplify(J);
-
 end
