@@ -1,159 +1,142 @@
-clear variables;
-clc
 
-syms l1 l2 d2 d3 q1 q2 real
+%% Main function for SCARA direct kinematics
+clear all; clc;
 
-% Joints and DH parameters
-joints = [q1, q2, d3];
-paramOrder = {'alpha', 'a', 'd', 'theta'};
-DH = [
-    0, -pi/2, 0, q1;
-    0, pi/2, d2, q2;
-    0, 0, d3, 0;
+syms L L1 L2 L3 L4 a1 a2 a3 a4 d1 d2 d3 d4 H q0 q1 q2 q3 q4 gamma real
+
+% Define symbolic variables
+
+% Define DH table and type of joints
+N = 4; % Number of joints
+
+joints_str = 'RRPR';
+joints_var = [q1, q2, q3, q4];
+
+DHTABLE = [
+    -pi/2 0 d1 q1;
+    0 a2 0 q2;
+    -pi/2 0 0 q3;
+    0 0 d4 q4;
 ];
 
+assert(N == length(joints_str), "Mismatch between N and length of joints_str");
+assert(N == size(DHTABLE, 1), "Mismatch between N and number of rows in DHTABLE");
+assert(N == length(joints_var), "Mismatch between N and length of joints_var");
 
-% Compute transformations
-[T_end, T_all] = directKinematics(DH, paramOrder);
+% Build transformation matrices
+A = build_transformation_matrices(DHTABLE);
 
-% Display the final transformation
-disp('Final transformation matrix T (base to end-effector):')
-disp(T_end)
+% Perform direct kinematics
+[p_vec, z_vec, T0N] = direct_kinematics(A, N);
 
-% Position of the end-effector
-position = T_end(1:3, 4);
-disp('Position of the end-effector:')
-disp(position)
+% Extract position and orientation of the end-effector
+disp("Position of the end-effector:");
+p_ee = T0N(1:3, 4);
+disp(p_ee);
 
-% Compute the geometric Jacobian
-J_geom = geometricJacobian(T_all, joints, 'RRP');
-disp('Geometric Jacobian matrix:')
-disp(J_geom)
+% Compute Jacobian
+J_geom = compute_geometric_jacobian(p_vec, z_vec, joints_str, N);
+J_analytical = simplify(jacobian(p_ee, joints_var));
+disp("Analytical Jacobian matrix:");
+disp(J_analytical);
 
-% Compute the analytical Jacobian
-J_analytical = jacobian(position, joints);
-disp('Analytical Jacobian matrix:')
-disp(J_analytical)
+% Analyze singularities
+J_P = J_geom(1:3, :);
+J_O = J_geom(4:6, :);
+analyze_singularities(J_analytical, joints_var);
 
-function inverseT = invT(T)
-    % Computes the inverse of a 4x4 isometry matrix.
-    % T: 4x4 isometry matrix, where the top-left 3x3 is a rotation matrix,
-    %    and the top-right 3x1 is a translation vector.
-        % Validate that T is a 4x4 matrix
-    if size(T, 1) ~= 4 || size(T, 2) ~= 4
-        error('Input must be a 4x4 isometry matrix.');
+
+function A = build_transformation_matrices(DHTABLE)
+    %% Build transformation matrices for each link
+    N = size(DHTABLE, 1);
+    A = cell(1, N);
+
+    for i = 1:N
+        alpha = DHTABLE(i, 1);
+        a = DHTABLE(i, 2);
+        d = DHTABLE(i, 3);
+        theta = DHTABLE(i, 4);
+
+        TDH = [ cos(theta) -sin(theta)*cos(alpha)  sin(theta)*sin(alpha) a*cos(theta);
+                sin(theta)  cos(theta)*cos(alpha) -cos(theta)*sin(alpha) a*sin(theta);
+                  0             sin(alpha)             cos(alpha)            d;
+                  0               0                      0                   1];
+
+        A{i} = TDH;
     end
-    
-    % Check if T is symbolic
-    if isa(T, 'sym')
-        % Create a symbolic identity matrix
-        inverseT = sym(eye(4));
-    else
-        % Create a numeric identity matrix
-        inverseT = eye(4);
-    end
-    
-    % Extract rotation and translation parts
-    R = T(1:3, 1:3); % Rotation matrix
-    t = T(1:3, 4);   % Translation vector
-    
-    % Compute the inverse of the rotation and translation
-    R_inv = R';      % Inverse of rotation is its transpose
-    t_inv = -R_inv * t; % Inverted translation
-    
-    % Construct the inverse isometry matrix
-    inverseT(1:3, 1:3) = R_inv;
-    inverseT(1:3, 4) = t_inv;
 end
 
-% Functions
-function [T, T_matrices] = directKinematics(DH, paramOrder)
-    % DH: nx4 matrix where each row is [p1, p2, p3, p4] in the specified order
-    % paramOrder: 1x4 cell array specifying the order of DH parameters e.g {'alpha', 'a', 'd', 'theta'}
-    
-    % Number of joints
-    n = size(DH, 1);
-   
-    % Map parameter names to indices
-    paramMap = containers.Map({'alpha', 'a', 'd', 'theta'}, 1:4);
-    paramIdx = cellfun(@(x) paramMap(x), paramOrder);
-    
-    % Initialize transformation matrix as identity
+function [p_vec, z_vec, T0N] = direct_kinematics(A, N)
+    %% Perform direct kinematics
     T = eye(4);
-    T_matrices = sym(zeros(4, 4, n));  % 3D array to store all intermediate transformations
-    T_ij = sym(zeros(4, 4, n));  % 3D array to store all intermediate transformations
-    for i = 1:n
-        % Extract DH parameters in the specified order
-        alpha = DH(i, paramIdx(1));
-        a = DH(i, paramIdx(2));
-        d = DH(i, paramIdx(3));
-        theta = DH(i, paramIdx(4));
+    N = length(A);
 
-        % Compute the transformation matrix for the current joint
-        Ti = [cos(theta), -sin(theta)*cos(alpha), sin(theta)*sin(alpha), a*cos(theta);
-              sin(theta), cos(theta)*cos(alpha), -cos(theta)*sin(alpha), a*sin(theta);
-              0, sin(alpha), cos(alpha), d;
-              0, 0, 0, 1];
-        
-        % Update the total transformation matrix
-        T = T * Ti;
+
+    p_i = T(1:3, 4);
+    z_i = T(1:3, 3);
+    disp("p_0 = [" + join(string(p_i), "; ") + "];");
+    disp("z_0 = [" + join(string(z_i), "; ") + "];");
+    p_vec = [p_i];
+    z_vec = [z_i];
+
+    for i = 1:N
+        T = T * A{i};
         T = simplify(T);
-
-        % Store the intermediate transformation matrix
-        T_ij(:, :, i) = Ti;
+        % disp p_i and z_i
+        p_i = T(1:3, 4);
+        z_i = T(1:3, 3);
+        disp("p_" + i + " = [" + join(string(p_i), "; ") + "];");
+        disp("z_" + i + " = [" + join(string(z_i), "; ") + "];");
+        p_vec = [p_vec, p_i];
+        z_vec = [z_vec, z_i];
     end
 
-    % Compute T_0E, T_1E ... T_(n-1)E
-    T_matrices(:, :, 1) = T;
-    for i = 2:n
-        T_matrices(:, :, i) = T_matrices(:, :, i-1) * T_ij(:, :, i); %????
-
-        T_matrices(:, :, i) = simplify(T_matrices(:, :, i));
-    end
+    T0N = T;
+    fprintf("\n\n__________________________________\n\n");
+    disp("Final Transformation Matrix T0N:");
+    disp(T0N);
 end
 
-function J = geometricJacobian(T_all, joints, type_joints)
-    % Computes the geometric Jacobian matrix using intermediate transformations
-    % T_all: 3D array of intermediate transformation matrices
-    % joints: symbolic vector of joint variables
-    
-    % Number of transformations
-    n = size(T_all, 3);
-    % Initialize Jacobian components
-    Jv = sym(zeros(3, n));  % Linear velocity Jacobian
-    Jw = sym(zeros(3, n));  % Angular velocity Jacobian
-    
-    % Extract base origin and z-axis
-    z_prev = [0; 0; 1];
-    
-    for i = 1:n
-        % Extract the origin and z-axis of the current transformation
-        j = n-i+1;
-        T = T_all(:, :, i);
-        z = T(1:3, 3);
+function J = compute_geometric_jacobian(p_vec, z_vec, joints_str, N)
+    %% Compute the geometric Jacobian
+    JP = [];
+    JO = [];
 
-        p_iE = T(1:3, 4);
-
-        T_end = T_all(:, :, 1);
-        end_effector = T_end(1:3, 4);
-
-        % Check if the current joint is prismatic or revolute
-        if type_joints(j) == 'R'
-            % Revolute joint
-            Jv(:, j) = cross(z_prev, p_iE);
-            Jv(:, j) = diff(end_effector, joints(j)); %ci sta quella non differenziale ma non riesco a farla funzionare
-            Jw(:, j) = z_prev;
+    for i = 1:N
+        p_i = p_vec(:, i);
+        z_i = z_vec(:, i);
+        if joints_str(i) == 'R'
+            JP = [JP, cross(z_i, p_vec(:, end) - p_i)];
+            JO = [JO, z_i];
         else
-            % Prismatic joint
-            Jv(:, j) = z_prev;
-            Jw(:, j) = [0; 0; 0];
+            JP = [JP, z_i];
+            JO = [JO, [0; 0; 0]];
         end
-        
-        % Update the previous origin and z-axis
-        z_prev = z;
     end
-    
-    % Combine linear and angular parts into the full Jacobian
-    J = [Jv; Jw];
+
+    J = [JP; JO];
     J = simplify(J);
+    disp("Geometric Jacobian matrix:");
+    disp(J);
+end
+
+function analyze_singularities(J, joints_var)
+    %% Analyze singularities based on Jacobian determinant
+
+    %check if the jacobian is square
+    [rows, cols] = size(J);
+
+    det_J = 0;
+
+    if rows ~= cols
+        det_J = simplify(det(J * J'));
+    else 
+        det_J = simplify(det(J));
+    end
+    disp("Determinant of the Jacobian:");
+    disp(det_J);
+
+    singular_points = solve(det_J == 0, joints_var);
+    disp("Singular configurations:");
+    disp(singular_points);
 end
