@@ -144,6 +144,13 @@ function J = compute_geometric_jacobian(p_vec, z_vec, joints_str)
     disp(J);
 end
 
+function J = transformation_geometric_jacobian(J, R, r)
+    %% Compute the geometric Jacobian for a transformation matrix
+    M1 = [R, zeros(3); zeros(3), R];
+    M2 = [eye(3), -skew(r); zeros(3), eye(3)];
+    J = M1 * M2 * J;
+end
+
 function det_J = analyze_singularities(J, joints_var)
     %% Analyze singularities based on Jacobian determinant
 
@@ -186,4 +193,9 @@ function inverseT = invT(T)
     R = T(1:3, 1:3);
     p = T(1:3, 4);
     inverseT = [R' -R'*p; 0 0 0 1];
+end
+
+function S = skew(v)
+    %% Compute the skew-symmetric matrix of a vector
+    S = [0 -v(3) v(2); v(3) 0 -v(1); -v(2) v(1) 0];
 end
