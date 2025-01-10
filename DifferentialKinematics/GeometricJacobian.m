@@ -67,6 +67,20 @@ p_dot = double(p_dot);
 disp("P_0d velocity:");
 disp(p_dot);
 
+%extract rotation matrix from T0N
+R0N = T0N(1:3, 1:3);
+p_0 = R0N * [0; 0; D];
+J_comp = transformation_geometric_jacobian(J_geom, eye(3), p_0); %the first moves the 0, the second moves the end effector
+J_comp = simplify(J_comp);
+J_comp = J_comp(1:3, :);
+
+J_comp = subs(J_comp, joints_var, q);
+p_dot = J_comp * q_dot';
+p_dot = subs(p_dot, [a1, a2, a3, d1, D], [0.04, 0.445, 0.04, 0.33, 0.52]);
+p_dot = double(p_dot);
+disp("P_0d velocity with Geometric Jacobian:");
+disp(p_dot);
+
 
 function A = build_transformation_matrices(DHTABLE)
     %% Build transformation matrices for each link
