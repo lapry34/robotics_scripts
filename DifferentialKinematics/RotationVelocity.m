@@ -28,8 +28,56 @@ disp(R_dot);
 angles_dot = [0, 0, theta_dot];
 omega = anglesDotToOmega(angles, angles_dot, "ZYX", false);
 
+syms alpha beta gamma real 
+syms alpha_dot beta_dot gamma_dot theta_dot real
+angles = [alpha, beta, gamma];
+angles_dot = [alpha_dot, beta_dot, gamma_dot];
+omega = anglesDotToOmega(angles, angles_dot, "XYZ", false);
+
+
 disp("omega:");
 disp(omega);
+
+T_xyz_e = anglesTimeTmatrix(angles, "XYZ", true);
+disp("T_xyz_e:");
+disp(T_xyz_e);
+
+
+function T = anglesTimeTmatrix(angles, sequence, fixed)
+    % angles: symbolic or numeric angles [alpha, beta, gamma]
+    % sequence: rotation sequence (e.g., "ZYX")
+    % fixed: boolean indicating fixed or rotating frame
+
+    sequence = char(sequence);
+    
+    R1 = eye(3);
+    R2 = Rot(angles(1), sequence(1));
+    R3 = R2 * Rot(angles(2), sequence(2));
+
+    n1 = numberAxis(sequence(1));
+    n2 = numberAxis(sequence(2));
+    n3 = numberAxis(sequence(3));
+
+    if fixed 
+        T = [R3(:,n3), R2(:,n2), R1(:,n1)];
+    else 
+        T = [R1(:,n1), R2(:,n2), R3(:,n3)];
+    end
+
+end
+
+function n = numberAxis(axis)
+    switch axis
+        case 'X'
+            n = 1;
+        case 'Y'
+            n = 2;
+        case 'Z'
+            n = 3;
+        otherwise
+            n = 0;
+    end
+end
 
 function omega = anglesDotToOmega(angles, angles_dot, sequence, fixed)
     % angles: symbolic or numeric angles [alpha, beta, gamma]
@@ -76,7 +124,7 @@ function omega = anglesDotToOmega(angles, angles_dot, sequence, fixed)
     end
 
     omega = simplify(omega);
-    omega = double(omega); % Convert to numeric
+    omega = vpa(omega); % Convert to numeric
 end
 
 
@@ -150,6 +198,19 @@ function R = RotZ(angle)
     R = [cos(angle), -sin(angle), 0;
          sin(angle),  cos(angle), 0;
                0,           0,    1];
+end
+
+function R = Rot(angle, axis)
+    switch axis
+        case 'X'
+            R = RotX(angle);
+        case 'Y'
+            R = RotY(angle);
+        case 'Z'
+            R = RotZ(angle);
+        otherwise
+            R = eye(3);
+    end
 end
 
 function R = axisAngleToRotm(r, theta)
