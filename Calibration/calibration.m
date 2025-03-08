@@ -2,7 +2,6 @@ clc; clear; close all;
 syms alpha a d theta real;
 
 %% Define symbolic DH parameters (General Form)
-% Order: {'alpha', 'a', 'd', 'theta'}
 paramOrder = {'alpha', 'a', 'd', 'theta'};
 
 % Define the D-H Table Symbolically (Modify this to define any robot)
@@ -11,6 +10,9 @@ DH_sym = [
     sym('alpha2'), sym('a2'), sym('d2'), sym('theta2');
     sym('alpha3'), sym('a3'), sym('d3'), sym('theta3')
 ];
+
+% Specify the uncertain parameters that need to be estimated
+uncertain_params = ["a1", "d1", "theta2", "a3"]; % Modify as needed
 
 % Compute Direct Kinematics Symbolically
 T_sym = directKinematics(DH_sym, paramOrder);
@@ -23,7 +25,7 @@ disp('Symbolic End-Effector Position:');
 disp(ee_sym);
 
 %% Convert to Numeric Values for Calibration
-n_joints = size(DH_sym, 1); % Number of joints
+n_joints = size(DH_sym, 1);
 
 % Define nominal values (Initial guess)
 DH_nom = [ % Change these values according to the robot's nominal parameters
@@ -33,33 +35,34 @@ DH_nom = [ % Change these values according to the robot's nominal parameters
 ];
 
 % Define true values (introducing small manufacturing errors)
-DH_true = DH_nom + 0.02 * randn(size(DH_nom)); % Small random errors
+DH_true = DH_nom + 0.01 * randn(size(DH_nom));
 
 % Generate calibration samples dynamically
-num_samples = 20; % Number of poses for calibration
-joint_types = [0, 1, 1]; % 0: Prismatic, 1: Revolute (Modify according to the robot)
+num_samples = 20;
+joint_types = [0, 1, 1];
 joint_samples = generateJointSamples(DH_true, joint_types, num_samples);
 
 % Compute ground truth using true DH parameters
 ee_true = zeros(3, num_samples);
 for i = 1:num_samples
-    ee_true(:, i) = double(subs(ee_sym, DH_sym(:), DH_true(:))); % Compute with true parameters
+    ee_true(:, i) = double(subs(ee_sym, DH_sym(:), DH_true(:)));
 end
 
 %% Calibration Algorithm (Iterative Least Squares)
-e_r = 1e-4;  % Convergence threshold
-i_max = 50;  % Maximum iterations
+e_r = 1e-4;
+i_max = 50;
 mse_history = zeros(i_max, 1);
-DH_cal = DH_nom; % Start with nominal parameters
+DH_cal = DH_nom;
 
-% Compute symbolic regressor matrix (Jacobian of EE position w.r.t. all DH parameters)
-Phi_sym = jacobian(ee_sym, DH_sym(:));
+% Compute symbolic regressor matrix (Jacobian of EE position w.r.t. only uncertain parameters)
+uncertain_syms = sym(uncertain_params);
+Phi_sym = jacobian(ee_sym, uncertain_syms);
 
 for iter = 1:i_max
     % Compute estimated end-effector positions with current DH parameters
     ee_est = zeros(3, num_samples);
     for i = 1:num_samples
-        ee_est(:, i) = double(subs(ee_sym, DH_sym(:), DH_cal(:))); % Compute with current estimates
+        ee_est(:, i) = double(subs(ee_sym, DH_sym(:), DH_cal(:)));
     end
 
     % Compute error
@@ -76,8 +79,8 @@ for iter = 1:i_max
         break;
     end
 
-    % Evaluate numerical regressor matrix
-    Phi = zeros(3*num_samples, numel(DH_sym));
+    % Evaluate numerical regressor matrix with only uncertain parameters
+    Phi = zeros(3*num_samples, numel(uncertain_syms));
     for i = 1:num_samples
         Phi(3*i-2:3*i, :) = double(subs(Phi_sym, DH_sym(:), DH_cal(:)));
     end
@@ -85,8 +88,11 @@ for iter = 1:i_max
     % Solve for parameter corrections using least squares
     delta_phi = pinv(Phi) * delta_r(:);
     
-    % Update estimated parameters
-    DH_cal = DH_cal + reshape(delta_phi, size(DH_cal));
+    % Update only the uncertain parameters in DH_cal
+    for j = 1:numel(uncertain_syms)
+        [row, col] = find(DH_sym == uncertain_syms(j));
+        DH_cal(row, col) = DH_cal(row, col) + delta_phi(j);
+    end
 end
 
 % Display results
@@ -103,9 +109,6 @@ grid on;
 
 %% Function: Direct Kinematics
 function T = directKinematics(DH, paramOrder)
-    % Computes the transformation matrix from base to end-effector
-    % Uses a custom parameter order for flexibility
-
     n = size(DH, 1);
     paramMap = containers.Map({'alpha', 'a', 'd', 'theta'}, 1:4);
     paramIdx = cellfun(@(x) paramMap(x), paramOrder);
@@ -117,13 +120,11 @@ function T = directKinematics(DH, paramOrder)
         d = DH(i, paramIdx(3));
         theta = DH(i, paramIdx(4));
 
-        % Transformation matrix
         Ti = [cos(theta), -sin(theta)*cos(alpha), sin(theta)*sin(alpha), a*cos(theta);
               sin(theta), cos(theta)*cos(alpha), -cos(theta)*sin(alpha), a*sin(theta);
               0, sin(alpha), cos(alpha), d;
               0, 0, 0, 1];
 
-        % Update transformation matrix
         T = T * Ti;
         T = simplify(T);
     end
@@ -131,15 +132,14 @@ end
 
 %% Function: Generate Joint Samples
 function jointSamples = generateJointSamples(DH, jointTypes, numSamples)
-    % Generates joint values for calibration, distinguishing revolute and prismatic joints
     jointSamples = zeros(size(DH, 1), numSamples);
     
     for i = 1:size(DH, 1)
         if jointTypes(i) == 1  % Revolute
-            jointSamples(i, :) = (rand(1, numSamples) - 0.5) * pi; % Random angles in [-pi/2, pi/2]
+            jointSamples(i, :) = (rand(1, numSamples) - 0.5) * pi;
         else  % Prismatic
             nominal_d = DH(i, 3);
-            jointSamples(i, :) = nominal_d + (rand(1, numSamples) - 0.5) * 0.1; % Small variations
+            jointSamples(i, :) = nominal_d + (rand(1, numSamples) - 0.5) * 0.1;
         end
     end
 end
