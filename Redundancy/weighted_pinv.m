@@ -1,5 +1,7 @@
 function Jw_pinv = weighted_pinv(J, W)
     
-    Jw_pinv = simplify(inv(W) * J' * inv(J * inv(W) * J'));
+    W_inv = inv(W);
+    
+    Jw_pinv = simplify(W_inv * J' * inv(J * W_inv * J'));
     
 end
