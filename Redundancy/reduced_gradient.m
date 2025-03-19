@@ -10,6 +10,9 @@ function q_dot = reduced_gradient(r_dot, q_list, a_list, b_list, J, grad_H)
     q_a = q_list(a_list);
     q_b = q_list(b_list);
 
+    % order also grad_H to match the order of q_list
+    grad_H = grad_H([a_list, b_list]);
+
     %extract the columns of the jacobian related to a_list and b_list and put it in J_a and J_b
     J_a = J(:, a_list);
     J_b = J(:, b_list);
@@ -52,8 +55,11 @@ function q_dot = reduced_gradient(r_dot, q_list, a_list, b_list, J, grad_H)
 
     q_dot = J_inv * r_dot + FF * grad_H;
 
-    %reorder q_dot to match the order of q_list
-    q_dot = q_dot([a_list, b_list]);
+    %reorder q_dot to match the original order
+    %extract the maximum value in a_list and b_list
+    max_val = max([a_list, b_list]);
+    %generate a list from 1 to max_val 
+    q_dot = q_dot([1:max_val]);
 
 
 end
