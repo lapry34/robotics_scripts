@@ -50,3 +50,13 @@ q_dot3 = task_priority(J, v_e, J2, r2_dot);
 disp(vpa(q_dot2));
 
 disp(vpa(q_dot3));
+
+% use reduced gradient
+q_list = [q1, q2, q3];
+a_list = [1, 2];
+b_list = [3];
+
+q_dot4 = reduced_gradient(v_e, q_list, a_list, b_list, J, q0_dot);
+q_dot4 = subs(q_dot4, [q1, q2, q3], [0, pi/2, -pi/2]);
+disp("reduced gradient")
+disp(vpa(q_dot4));
