@@ -54,7 +54,7 @@ function [S] = factorization_S_from_inertia_matrix(M, q, dq, verbose)
     
     % Display the results
     if verbose
-        disp('Coriolis matrix S:');
+        disp('factorization of Coriolis matrix C by S:');
         disp(S);
         disp('M_dot - 2*S:');
         disp(verification);
