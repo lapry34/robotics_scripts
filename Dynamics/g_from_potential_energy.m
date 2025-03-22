@@ -7,4 +7,4 @@ function g = g_from_potential_energy(U,q)
     %links)
     %- q = a vertical vector q [q1;q2;q3]
 
-    g=vpa(simplify(jacobian(U,q)))'
+    g=vpa(simplify(jacobian(U,q)))';
