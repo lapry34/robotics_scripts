@@ -5,7 +5,7 @@ syms q1 q2 q3 positive
 syms q1_dot q2_dot q3_dot positive
 syms p1 p2 p3 real
 
-addpath('.\Dynamics\');
+addpath('..\Dynamics\');
 
 p = [p1; p2; p3];
 

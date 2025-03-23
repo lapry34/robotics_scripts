@@ -1,7 +1,7 @@
 clc;
 
 clear all;
-addpath('.\Dynamics\');
+addpath('..\Dynamics\');
 
 syms i1xx i1yy i1zz i1xy i1xz i1yz positive
 syms i2xx i2yy i2zz real

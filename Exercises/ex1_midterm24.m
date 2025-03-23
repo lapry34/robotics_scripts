@@ -2,7 +2,7 @@ clc;
 
 clear all;
 digits(4);
-addpath('~/Documents/GitHub/robotics_scripts/Redundancy/')
+addpath('../Redundancy/')
 % 3R planar robot direct kinematics function, with unitary links
 
 % Input: joint angles q1, q2, q3
