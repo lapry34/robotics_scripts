@@ -1,7 +1,7 @@
 clc;
 
 clear all;
-addpath('..\Dynamics\');
+addpath('.\Dynamics\');
 
 syms i1xx i1yy i1zz i1xy i1xz i1yz positive
 syms i2xx i2yy i2zz real
@@ -12,6 +12,7 @@ syms g0 real
 syms m1 m2 positive
 syms q1 q2 real
 syms q1_dot q2_dot real
+syms q1_ddot q2_ddot real
 
 rc1 = [rc1x; rc1y; rc1z];
 rc2 = [rc2x; 0; 0];
@@ -66,3 +67,14 @@ disp(U)
 %S = factorization_S_from_inertia_matrix(M, [q1; q2], [q1_dot; q2_dot], false);
 %disp("S:")
 %disp(S)
+
+% Optional: Create a friction model
+friction.Fv = [0; 0]; % Viscous friction coefficients
+friction.Fc = [0; 0]; % Coulomb friction coefficients
+
+% Generate the linear parametrization
+
+[Y, a] = linear_parametrization(M, C, g, [q1; q2], [q1_dot; q2_dot], [q1_ddot; q2_ddot], true);
+
+disp("Y_sym:")
+disp(Y)
