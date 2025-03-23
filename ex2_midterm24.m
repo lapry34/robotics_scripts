@@ -50,17 +50,19 @@ rc2 = rc2(1:3);
 disp("U:")
 disp(U)
 
-g = g_from_potential_energy(U, [q1; q2]);
+[M, C, S, g] = compute_dynamic_model([q1; q2], [q1_dot; q2_dot], T, U, true);
 
-disp("M:")
-disp(M)
+%g = g_from_potential_energy(U, [q1; q2]);
 
-disp("C:")
-disp(C)
+%disp("M:")
+%disp(M)
 
-disp("g:")
-disp(g)
+%disp("C:")
+%disp(C)
 
-S = factorization_S_from_inertia_matrix(M, [q1; q2], [q1_dot; q2_dot], true);
-disp("S:")
-disp(S)
+%disp("g:")
+%disp(g)
+
+%S = factorization_S_from_inertia_matrix(M, [q1; q2], [q1_dot; q2_dot], false);
+%disp("S:")
+%disp(S)

@@ -17,17 +17,25 @@ function [S] = factorization_S_from_inertia_matrix(M, q, dq, verbose)
     M_dot = inertia_matrix_derivative(M, q, dq);
     
     % Initialize the Coriolis matrix S
-    S = sym(zeros(n, n));
+    %S = sym(zeros(n, n));
+    S = sym([]);
+
+    cell_c_k = christoffel_symbols(M, q);
+
+    for i = 1:n
+        s_i = dq' * cell_c_k{i};
+        S = [S; s_i];
+    end
     
     % Calculate S using Christoffel symbols
-    for i = 1:n
-        for j = 1:n
-            for k = 1:n
-                % Contribution to S from Christoffel symbols of the first kind
-                S(i,j) = S(i,j) + 0.5 * (diff(M(i,j), q(k)) + diff(M(i,k), q(j)) - diff(M(j,k), q(i))) * dq(k);
-            end
-        end
-    end
+    %for i = 1:n
+    %    for j = 1:n
+    %        for k = 1:n
+    %            % Contribution to S from Christoffel symbols of the first kind
+    %            S(i,j) = S(i,j) + 0.5 * (diff(M(i,j), q(k)) + diff(M(i,k), q(j)) - diff(M(j,k), q(i))) * dq(k);
+    %        end
+    %    end
+    %end
     
     % Simplify the result
     S = simplify(S);
