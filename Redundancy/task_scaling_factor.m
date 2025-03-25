@@ -1,5 +1,9 @@
-function [critical_joint, task_scaling_factor] = task_scaling_factor(J, x_dot, q_dot_0, Q_min_dot, Q_max_dot)
-    
+function [critical_joint, task_scaling_factor] = task_scaling_factor(J, x_dot, q_dot_0, Q_min_dot, Q_max_dot, verbose)
+
+    if nargin < 6
+        verbose = false;
+    end
+
     [M, N] = size(J);
     q_dot_r = simplify(pinv(J) * x_dot);
     q_dot_n = simplify(proj_nullSpace(J) * q_dot_0);
@@ -39,17 +43,18 @@ function [critical_joint, task_scaling_factor] = task_scaling_factor(J, x_dot, q
     v_s = vpa(task_scaling_factor * x_dot);
     q_dot_scaled = vpa(task_scaling_factor * q_dot_r + q_dot_n);
 
-    fprintf("Minimum norm solution: \n ")
-    disp(q_dot_r)
-    fprintf("Null space term: \n ")
-    disp(q_dot_n)
-    fprintf("\n The most critical joint is joint %d.\n", I)
-    fprintf("The scaling factor is %.4f.\n", task_scaling_factor)
-    fprintf("Therefore, the scaled task velocity is v_s = k * r_dot:")
-    disp(v_s)
-    fprintf("Therefore, the scaled joint velocity that recovers feasibility is q_dot_scaled = k * q_dot_r + q_dot_n:")
-    disp(q_dot_scaled)
-
+    if verbose
+        fprintf("Minimum norm solution: \n ")
+        disp(q_dot_r)
+        fprintf("Null space term: \n ")
+        disp(q_dot_n)
+        fprintf("\n The most critical joint is joint %d.\n", I)
+        fprintf("The scaling factor is %.4f.\n", task_scaling_factor)
+        fprintf("Therefore, the scaled task velocity is v_s = k * r_dot:")
+        disp(v_s)
+        fprintf("Therefore, the scaled joint velocity that recovers feasibility is q_dot_scaled = k * q_dot_r + q_dot_n:")
+        disp(q_dot_scaled)
+    end
 
     
 end
