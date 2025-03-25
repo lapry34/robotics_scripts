@@ -1,4 +1,4 @@
-function S_s = factorization_S_C(cell_C_k, q, q_dot, print_info)
+function S_s = factorization_S_from_C(cell_C_k, q, q_dot, print_info)
     %Inputs:
     %   cell_C_k : cell array of Ck
     %   q : (Nx1) vector of joint configuration
