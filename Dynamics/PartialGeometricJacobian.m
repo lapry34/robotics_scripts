@@ -15,6 +15,8 @@ function [J, J_partial] = PartialGeometricJacobian(DHTABLE, joints)
     
     % Compute partial Jacobians
     J_partial = compute_partial_jacobians(p_vec, z_vec, joints);
+
+    simplify(J);
 end
 
 function [p_vec, z_vec, T0N] = direct_kinematics(A)
