@@ -23,8 +23,8 @@ I1 = 0; %diag([i1xx, i1yy, i1zz]);
 I2 = diag([0, i2yy, 0]);%diag([i2xx, i2yy, i2zz]);
 I3 = diag([i3xx, i3yy, i3zz]);
 r_c1 = [0; 0; rc1z];
-r_c2 = [rc2x; rc2y; rc2z];
-r_c3 = [rc3x; rc3y; rc3z];
+r_c2 = [0; 0; d_c2];
+r_c3 = [0; d_c3; 0];
 
 r_c = {r_c1, r_c2, r_c3};
 
@@ -42,6 +42,7 @@ T2 = 0.5 * m2 * q1_dot^2 + 0.5 * i2yy * q2_dot^2;
 
 [F, A] = DHMatrix(DHTable);
 
+R_ee = F(1:3, 1:3);
 J = PartialGeometricJacobian(DHTable, 'PRR');
 
 J_a = J(1:3, :);
