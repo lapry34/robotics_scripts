@@ -3,7 +3,7 @@ clc;
 clear all;
 digits(4);
 
-addpath("./Dynamics/")
+addpath("../Dynamics/")
 
 syms q1 q2 q3 real;
 syms q1_dot q2_dot q3_dot real;
