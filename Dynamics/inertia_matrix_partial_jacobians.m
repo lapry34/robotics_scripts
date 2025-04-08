@@ -20,6 +20,15 @@ function D = inertia_matrix_partial_jacobians(DHTABLE, joints, masses, inertia_t
     % Compute full geometric Jacobian for each joint
     [J_full, J_partial] = PartialGeometricJacobian(DHTABLE, joints);
     
+    % Compute rotation matrices using DHMatrix
+    R_vec = cell(1, N);
+    for i = 1:N
+        % Get cumulative transformation up to current link
+        dh_subset = DHTABLE(1:i, :);
+        [T, ~] = DHMatrix(dh_subset);
+        R_vec{i} = T(1:3,1:3);  % Extract rotation matrix
+    end
+
     % Initialize inertia matrix
     D = zeros(N, N);
     
@@ -40,8 +49,8 @@ function D = inertia_matrix_partial_jacobians(DHTABLE, joints, masses, inertia_t
         D_mass = m_i * (J_pi' * J_pi);
         
         % Compute inertia contribution (rotational)
-        % Transform inertia tensor to world frame using Jacobian
-        D_inertia = J_oi' * I_i * J_oi;
+        R_i = R_vec{i};
+        D_inertia = (R_i'*J_oi)' * I_i * (R_i'*J_oi);  % Transform to body frame
         
         % Combine contributions
         D = D + D_mass + D_inertia;
