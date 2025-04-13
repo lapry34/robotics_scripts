@@ -45,8 +45,8 @@ v_c2 = jacobian(p_c2, [q1; q2; q3])*[q1_dot; q2_dot; q3_dot];
 v_c3 = jacobian(p_c3, [q1; q2; q3])*[q1_dot; q2_dot; q3_dot];
 
 w_1 = [0; 0; q1_dot];
-w_2 = [0; 0; q2_dot];
-w_3 = [0; 0; q3_dot];
+w_2 = [0; 0; q1_dot + q2_dot];
+w_3 = [0; 0; q1_dot + q2_dot + q3_dot];
 
 T1 = 0.5*m*(v_c1' * v_c1) + 0.5*w_1'*Ic*w_1;
 T2 = 0.5*m*(v_c2' * v_c2) + 0.5*w_2'*Ic*w_2;

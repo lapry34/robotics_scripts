@@ -21,6 +21,12 @@ function Y = extract_Y_v3(Ya, dynamic_symbols)
 
         Y = [Y, Yi];
     end
+
+    Y = simplify(Y);
+
+    %check if Y * a = Ya
+    %assert(Y * dynamic_symbols == Ya)
+
     
 end
 
