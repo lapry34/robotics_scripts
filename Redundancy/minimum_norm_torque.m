@@ -18,8 +18,10 @@ function tau = minimum_norm_torque(J,  J_dot, q_dot, M, r_ddot, n, tau_0)
         J_inv = pinv(J);
         num_rows = size(J_inv, 1);
         I = eye(num_rows);
-        tau = tau + (I - J_inv * J) * tau_0;
+        tau = tau + M * (I - J_inv * J) * tau_0;
     end
 
     tau = simplify(tau);
 end
+
+%τ₀ = (I - (JM⁻¹)⁺(JM⁻¹))v = M(I - J⁺J)v 

@@ -1,6 +1,6 @@
 
 
-function [M_p, c_p, g_p, u_p] = coordinate_transformation(M_q, c_q, g_q, u_q, q_dot, J, J_dot)
+function [M_p, c_p, g_p, u_p] = coordinate_transformation(M_q, c_q, g_q, u_q, q_dot, J, J_dot, verbose)
     % M: mass matrix
     % c: coriolis matrix
     % g: gravity matrix
@@ -12,7 +12,11 @@ function [M_p, c_p, g_p, u_p] = coordinate_transformation(M_q, c_q, g_q, u_q, q_
     %then then it is easier to define J_inv that goes from DH to absolute, because [1, ..0; 1, 1,...0; 1, 1, 1,...0]
     %see exam of 06 2023 ex 1
 
-    J_inv = inv(J);
+    if nargin < 8
+        verbose = false;
+    end
+
+    J_inv = pinv(J); %generalized inverse can be used.
 
     p_dot = J*q_dot;
 
@@ -22,6 +26,23 @@ function [M_p, c_p, g_p, u_p] = coordinate_transformation(M_q, c_q, g_q, u_q, q_
     g_p = J_inv'*g_q;
 
     u_p = J_inv'*u_q;
+
+
+    simplify(u_p)
+    simplify(g_p)
+    simplify(c_p)
+    simplify(M_p)
+
+    if verbose
+        disp("M_p:");
+        disp(M_p);
+        disp("c_p:");
+        disp(c_p);
+        disp("g_p:");
+        disp(g_p);
+        disp("u_p:");
+        disp(u_p);
+    end
 
 end
 
