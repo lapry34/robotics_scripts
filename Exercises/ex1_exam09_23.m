@@ -73,6 +73,10 @@ J_inv = pinv(J);
 M_inv = pinv(M);
 disp(M)
 u_ns = M*(eye(4) - J_inv * J) * u_q; %proj in the dynamic null space
+u_ns = (eye(4) - J_inv * (inv(J * M_inv * J') * J * M_inv)) * u_q; %proj in the dynamic null space
+%u_ns = subs(u_ns, [m1; m2; m3; m4], [1; 1; 1; 1]);
+%u_ns = subs(u_ns, u_q , [1; 1; 1; 1]);
+simplify(u_ns);
 disp("u_ns: ");
 disp(u_ns);
 

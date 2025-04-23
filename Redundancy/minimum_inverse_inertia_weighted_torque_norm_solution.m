@@ -18,7 +18,8 @@ function tau = minimum_inverse_inertia_weighted_torque_norm_solution(J,  J_dot, 
         J_inv = pinv(J);
         num_rows = size(J_inv, 1);
         I = eye(num_rows);
-        tau = tau + M * (I - J_inv * J) * tau_0;
+        H = (inv(J * M_inv * J') * J * M_inv); %generalized inverse
+        tau = tau + M * (I - J' * H) * tau_0;
     end
 
     tau = simplify(tau);
