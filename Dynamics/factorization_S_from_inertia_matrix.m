@@ -15,6 +15,11 @@ function [S] = factorization_S_from_inertia_matrix(M, q, dq, verbose)
     
     % Calculate M_dot (the time derivative of M)
     M_dot = inertia_matrix_derivative(M, q, dq);
+
+    if verbose
+        disp('M_dot:');
+        disp(M_dot);
+    end
     
     % Initialize the Coriolis matrix S
     %S = sym(zeros(n, n));

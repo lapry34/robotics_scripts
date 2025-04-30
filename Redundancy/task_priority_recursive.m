@@ -10,16 +10,8 @@ function q_dot = task_priority_recursive(J_cell, r_dot_cell)
         r_dot = r_dot_cell{i};
 
         JP = J*P;
-        
-        % check if JP is close to singularity using singular values
-        sv = svd(JP);
-        tol = 1e-8;
-        if any(sv < tol)
-            fprintf('Warning: JP is close to singularity at iteration %d\n', i);
-            JP_inv = J_damped_least_squares(JP, tol);
-        else
-            JP_inv = pinv(JP);
-        end
+        JP = vpa(JP);
+        JP_inv = pinv(JP);    
 
         q_dot = q_dot + JP_inv*(r_dot - J*q_dot);
         P = P - JP_inv*JP;
