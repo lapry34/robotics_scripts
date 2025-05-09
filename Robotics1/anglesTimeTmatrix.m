@@ -34,36 +34,3 @@ function n = numberAxis(axis)
             n = 0;
     end
 end
-
-
-
-function R = RotX(angle)
-    R = [1,      0,           0;
-         0, cos(angle), -sin(angle);
-         0, sin(angle),  cos(angle)];
-end
-
-function R = RotY(angle)
-    R = [ cos(angle), 0, sin(angle);
-                0, 1,      0;
-         -sin(angle), 0, cos(angle)];
-end
-
-function R = RotZ(angle)
-    R = [cos(angle), -sin(angle), 0;
-         sin(angle),  cos(angle), 0;
-               0,           0,    1];
-end
-
-function R = Rot(angle, axis)
-    switch axis
-        case 'X'
-            R = RotX(angle);
-        case 'Y'
-            R = RotY(angle);
-        case 'Z'
-            R = RotZ(angle);
-        otherwise
-            R = eye(3);
-    end
-end
